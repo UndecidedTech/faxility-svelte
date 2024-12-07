@@ -3,7 +3,6 @@ import { workOrders } from '$lib/server/db/schema';
 import { sql } from 'drizzle-orm';
 
 export async function GET(event) {
-	console.log('we made it here: ', event);
 	const skip = event.url.searchParams.get('skip') ?? '0';
 	const limit = event.url.searchParams.get('limit') ?? '10';
 
@@ -19,7 +18,7 @@ export async function GET(event) {
 	let query = db.select().from(workOrders);
 
 	// Add search condition if search parameter is provided
-	if (search) {
+	if (search.length > 0) {
 		query = query.where(
 			sql`LOWER(description) LIKE LOWER(${'%' + search + '%'}) OR 
 			    LOWER(title) LIKE LOWER(${'%' + search + '%'})`
@@ -34,11 +33,13 @@ export async function GET(event) {
 
 	const totalCount = Number(totalCountResult[0].count);
 
+
 	// Add sorting and pagination
 	const list = await query
 		.orderBy(sql`${sql.raw(sortBy)} ${sql.raw(sortOrder)}`)
 		.limit(limit)
 		.offset(skip);
+
 
 	return new Response(
 		JSON.stringify({
