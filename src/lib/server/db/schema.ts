@@ -16,7 +16,6 @@ export const user = createTable('user', {
 	id: text('id').primaryKey(),
 	age: integer('age'),
 	username: text('username').notNull().unique(),
-	passwordHash: text('password_hash').notNull()
 });
 
 export const session = createTable('session', {
@@ -51,7 +50,7 @@ export const workOrders = createTable(
 		followUpScheduling: text('follow_up_scheduling'),
 		userId: varchar('user_id', { length: 256 })
 			.notNull()
-			.references(() => users.id),
+			.references(() => user.id),
 		createdAt: timestamp('created_at', { withTimezone: true })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),
@@ -61,6 +60,8 @@ export const workOrders = createTable(
 		requestIndex: index('user_idx').on(example.userId)
 	})
 );
+
+
 
 export type Session = typeof session.$inferSelect;
 

@@ -31,10 +31,14 @@ import { TrFillAlertOctagon } from "svelte-icons-pack/tr";
     <span class="font-bold">Emergency Calls</span>
   </div>
 
-  <div class="flex h-40 flex-col items-center justify-center bg-amber-400">
+  <a 
+    href="/masterbook"
+    class="flex h-40 flex-col items-center justify-center bg-amber-400"
+  >
     <Icon src={RiDocumentBookOpenFill} size={100} />
+
     <span class="font-bold">Masterbook</span>
-  </div>
+  </a>
 
   <div class="flex h-40 flex-col items-center justify-center bg-green-400">
     <Icon src={FaSolidDollarSign} size={100} />
