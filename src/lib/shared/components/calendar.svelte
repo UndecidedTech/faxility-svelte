@@ -1,68 +1,78 @@
 <script>
     import { onMount } from 'svelte';
+    import { fade } from 'svelte/transition';
 
     // State management
     let currentDate = new Date();
-    let selectedView = 'week'; // day, week, month, year
+    let selectedView = 'week';
+    let selectedDate = null;
+
+    // Sample events with more metadata
     let events = [
         {
             id: 1,
             title: 'Monday Wake-Up Hour',
             start: '8:00 AM',
+            end: '9:00 AM',
             color: 'sky',
             day: 'MON',
-            location: '740 Residences'
+            location: '740 Residences',
+            description: 'Morning routine and planning',
+            attendees: ['John Doe', 'Jane Smith']
         },
         {
             id: 2,
             title: 'Coffee Chat',
             start: '9:00 AM',
-            color: 'sky',
+            end: '10:00 AM',
+            color: 'emerald',
             day: 'WED',
-            location: ''
-        },
-        // Add more events as needed
+            location: 'Starbucks Downtown',
+            description: 'Weekly team catch-up',
+            attendees: ['Alice Johnson']
+        }
     ];
 
-    let hours = Array.from({length: 11}, (_, i) => ({
-        hour: i + 7,
-        label: `${i + 7}${(i + 7) >= 12 ? 'PM' : 'AM'}`
-    }));
+    // Modify the hours array to include half-hours
+    let hours = Array.from({length: 24}, (_, i) => {
+        const hour = Math.floor(i/2) + 7;
+        const isHalfHour = i % 2 === 1;
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour > 12 ? hour - 12 : hour;
+        return {
+            hour,
+            minutes: isHalfHour ? '30' : '00',
+            label: isHalfHour ? '' : `${displayHour}:00 ${period}`
+        };
+    });
 
     let weekDays = [
-        { short: 'SUN', long: 'Sunday', date: 21 },
-        { short: 'MON', long: 'Monday', date: 22 },
-        { short: 'TUE', long: 'Tuesday', date: 23 },
-        { short: 'WED', long: 'Wednesday', date: 24 },
-        { short: 'THU', long: 'Thursday', date: 25 },
-        { short: 'FRI', long: 'Friday', date: 26 },
-        { short: 'SAT', long: 'Saturday', date: 27 }
+        { short: 'SUN', long: 'Sunday', date: null },
+        { short: 'MON', long: 'Monday', date: null },
+        { short: 'TUE', long: 'Tuesday', date: null },
+        { short: 'WED', long: 'Wednesday', date: null },
+        { short: 'THU', long: 'Thursday', date: null },
+        { short: 'FRI', long: 'Friday', date: null },
+        { short: 'SAT', long: 'Saturday', date: null }
     ];
 
-    function setView(view) {
-        selectedView = view;
+    // Event handling functions
+    function handleEventClick(event) {
+        // Show event details modal
+        console.log('Event clicked:', event);
     }
 
-    function addEvent(timeSlot, day) {
-        // Implement event addition logic
-        console.log(`Adding event at ${timeSlot} on ${day}`);
-    }
-
-    function handleDrop(event, timeSlot, day) {
-        // Implement drag and drop logic
-        console.log(`Dropped event at ${timeSlot} on ${day}`);
+    function handleTimeSlotClick(hour, minutes, day) {
+        console.log(`Creating event at: ${hour}:${minutes}`, day);
     }
 
     function navigateWeek(direction) {
-        // Implement week navigation
-        const newDate = new Date(currentDate);
-        newDate.setDate(currentDate.getDate() + (direction * 7));
-        currentDate = newDate;
+        currentDate.setDate(currentDate.getDate() + (direction * 7));
+        currentDate = new Date(currentDate);
         updateWeekDays();
     }
 
     function updateWeekDays() {
-        // Update the weekDays array based on currentDate
         const startOfWeek = new Date(currentDate);
         startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
         
@@ -71,12 +81,22 @@
             date.setDate(startOfWeek.getDate() + index);
             return {
                 ...day,
-                date: date.getDate()
+                date: date.getDate(),
+                isToday: isSameDay(date, new Date())
             };
         });
     }
 
-    // ... (previous script code remains the same)
+    function isSameDay(date1, date2) {
+        return date1.getDate() === date2.getDate() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getFullYear() === date2.getFullYear();
+    }
+
+    // Initialize calendar
+    onMount(() => {
+        updateWeekDays();
+    });
 
     // Constants for layout calculations
     const COLUMN_WIDTH = 144.57; // Width of each day column
@@ -117,109 +137,137 @@
         // Calculate top position based on time
         const topPosition = ((militaryHour - startHour) * hourHeight) + 172; // 172px is initial top padding
         return topPosition;
-        }
+    }
 
-    // ... (rest of the script code remains the same)
+    function getEventColor(color) {
+        // Implement logic to determine event color
+        return color;
+    }
+
+    function getEventHour(time) {
+        // Implement logic to extract hour from time format
+        const [hours, minutes] = time.split(':');
+        return parseInt(hours);
+    }
+
+    function getEventMinutes(timeString) {
+        const [time] = timeString.split(' ');
+        const [, minutes] = time.split(':');
+        return minutes;
+    }
 </script>
 
-<div class="my-12">
-    <div class="w-[1140px] h-[904px] relative">
-        <div class="w-[1140px] h-[904px] p-4 left-0 top-0 absolute flex-col justify-start items-start gap-6 inline-flex">
-            <!-- View selection buttons -->
-            <div class="self-stretch justify-between items-center inline-flex">
-                <div class="justify-start items-start flex">
-                    {#each ['Day', 'Week', 'Month', 'Year'] as view}
-                        <div class="justify-start items-start flex">
-                            <button 
-                                class="px-4 py-1.5 rounded-lg justify-start items-center gap-2 flex"
-                                class:bg-[#eb6f20]={selectedView.toLowerCase() === view.toLowerCase()}
-                                on:click={() => setView(view.toLowerCase())}
+<div class="calendar-container bg-white rounded-xl shadow-lg p-6">
+    <!-- Calendar Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+            <button 
+                class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                on:click={() => navigateWeek(-1)}
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h2 class="text-xl font-semibold">
+                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button 
+                class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                on:click={() => navigateWeek(1)}
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex gap-2">
+            {#each ['Day', 'Week', 'Month'] as view}
+                <button 
+                    class="px-4 py-2 rounded-lg transition-colors"
+                    class:bg-primary-100={selectedView === view.toLowerCase()}
+                    class:text-primary-600={selectedView === view.toLowerCase()}
+                    on:click={() => selectedView = view.toLowerCase()}
+                >
+                    {view}
+                </button>
+            {/each}
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="calendar-grid">
+        <!-- Days Header -->
+        <div class="grid grid-cols-8 gap-0 border-b border-gray-200">
+            <div class="w-20 p-2 border-r border-gray-200"></div>
+            {#each weekDays as day, i}
+                <div class="text-center p-2 {day.isToday ? 'bg-primary-50' : ''} {i !== weekDays.length - 1 ? 'border-r border-gray-200' : ''}">
+                    <div class="text-sm text-gray-500">{day.short}</div>
+                    <div class="text-xl font-semibold {day.isToday ? 'text-primary-600' : ''}">{day.date}</div>
+                </div>
+            {/each}
+        </div>
+
+        <!-- Time Slots -->
+        {#each hours as {hour, minutes, label}, hourIndex}
+            <div class="grid grid-cols-8 gap-0 {hourIndex !== hours.length - 1 ? 'border-b border-gray-100' : ''}">
+                <div class="text-sm text-gray-500 p-2 border-r border-gray-200 h-[36px]">
+                    {label}
+                </div>
+                {#each weekDays as day, dayIndex}
+                    <div 
+                        class="h-[36px] p-1 hover:bg-gray-50 transition-colors cursor-pointer {dayIndex !== weekDays.length - 1 ? 'border-r border-gray-200' : ''} relative"
+                        on:click={() => handleTimeSlotClick(hour, minutes, day)}
+                    >
+                        <!-- Event slots -->
+                        {#each events.filter(e => e.day === day.short && 
+                            getEventHour(e.start) === hour && 
+                            getEventMinutes(e.start) === minutes) as event}
+                            <div
+                                transition:fade
+                                class="absolute inset-0 m-1 p-2 rounded-lg text-sm cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                style="background-color: {getEventColor(event.color)}20; border-left: 3px solid {getEventColor(event.color)}"
+                                on:click|stopPropagation={() => handleEventClick(event)}
                             >
-                                <div class="text-sm font-medium font-['Inter'] leading-tight"
-                                    class:text-white={selectedView.toLowerCase() === view.toLowerCase()}
-                                    class:text-zinc-500={selectedView.toLowerCase() !== view.toLowerCase()}>
-                                    {view}
-                                </div>
-                            </button>
-                        </div>
-                    {/each}
-                </div>
-
-                <!-- Task Type Filter -->
-                <div class="pl-5 pr-3.5 py-3 bg-white rounded-[100px] border border-[#eb6f20]/30 justify-start items-center gap-2 flex">
-                    <select class="w-[177px] text-[#3d424c] text-sm font-semibold font-['Almarena Neue'] leading-tight bg-transparent border-none outline-none">
-                        <option>All Task Types</option>
-                        <option>Meetings</option>
-                        <option>Appointments</option>
-                        <option>Others</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Calendar Grid -->
-            <div class="w-[1124px] h-[0px] border border-[#eaeaea]"></div>
-            <div class="flex-col justify-start items-start flex">
-                <!-- Week header -->
-                <div class="w-[1108px] pl-12 justify-start items-start gap-3 inline-flex">
-                    {#each weekDays as day}
-                        <div class="w-[144.57px] px-2 pt-1 pb-4 {day.short === 'SUN' || day.short === 'SAT' ? 'bg-neutral-50' : 'bg-white'} 
-                                    shadow-[inset_-1px_-1px_0px_0px_rgba(224,224,224,1.00)] flex-col justify-start items-start inline-flex">
-                            <div class="self-stretch text-zinc-500 text-[10px] font-bold font-['Inter'] leading-3">{day.short}</div>
-                            <div class="self-stretch text-black text-[22px] font-medium font-['Inter'] leading-loose">{day.date}</div>
-                        </div>
-                    {/each}
-                    <div class="w-12 text-zinc-500 text-xs font-normal font-['Inter'] leading-none">EST<br/>GMT-5</div>
-                </div>
-
-                <!-- Time slots -->
-                {#each hours as {hour, label}}
-                    <div class="w-[1156px] justify-start items-start gap-3 inline-flex">
-                        <div class="w-9 text-zinc-500 text-xs font-normal font-['Inter'] leading-none">{label}</div>
-                        <div class="self-stretch justify-start items-start flex">
-                            {#each weekDays as day}
-                                <!-- Time slot cell -->
-                                <div 
-                                    class="w-[144.57px] bg-{day.short === 'THU' ? 'blue-50' : day.short === 'SUN' || day.short === 'SAT' ? 'neutral-50' : 'white'} 
-                                        shadow-[inset_-1px_-1px_0px_0px_rgba(224,224,224,1.00)] flex-col justify-start items-start inline-flex"
-                                    on:click={() => addEvent(label, day.short)}
-                                    on:dragover|preventDefault
-                                    on:drop|preventDefault={(e) => handleDrop(e, label, day.short)}
-                                >
-                                    <div class="self-stretch h-9 shadow-[inset_0px_-1px_0px_0px_rgba(247,247,247,1.00)]"></div>
-                                    <div class="self-stretch h-9"></div>
-                                </div>
-                            {/each}
-                        </div>
-                        <div class="w-9 text-zinc-500 text-xs font-normal font-['Inter'] leading-none">{label}</div>
+                                <div class="font-semibold truncate">{event.title}</div>
+                                <div class="text-xs text-gray-600 truncate">{event.start} - {event.end}</div>
+                            </div>
+                        {/each}
                     </div>
                 {/each}
             </div>
-        </div>
-
-        <!-- Event cards -->
-        {#each events as event}
-            <!-- Render event cards with proper positioning based on time and day -->
-            <div class="absolute" style="left: {getEventPosition(event)}px; top: {getEventTop(event)}px;">
-                <div class="w-[143px] h-[68px] bg-{event.color}-500/10 rounded justify-start items-start inline-flex overflow-hidden">
-                    <div class="w-[3px] self-stretch bg-{event.color}-500"></div>
-                    <div class="grow shrink basis-0 h-[68px] p-1.5 rounded flex-col justify-start items-start inline-flex">
-                        <div class="self-stretch justify-start items-center gap-1 inline-flex">
-                            <div class="text-{event.color}-700 text-xs font-medium font-['Inter'] leading-none">{event.start}</div>
-                        </div>
-                        <div class="self-stretch text-{event.color}-700 text-xs font-semibold font-['Inter'] leading-none">{event.title}</div>
-                    </div>
-                </div>
-            </div>
         {/each}
     </div>
-
 </div>
 
 <style>
-    /* Add any additional styles here */
-    select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
+    .calendar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .calendar-grid {
+        overflow-y: auto;
+        max-height: 800px;
+    }
+
+    /* Custom scrollbar styles */
+    .calendar-grid::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .calendar-grid::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .calendar-grid::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .calendar-grid::-webkit-scrollbar-thumb:hover {
+        background: #555;
     }
 </style>

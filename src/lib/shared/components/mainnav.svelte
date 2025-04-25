@@ -2,42 +2,50 @@
 	import { page } from "$app/stores";
 	import UserButton from "clerk-sveltekit/client/UserButton.svelte";
 
-    let { isExpanded, handleSidebarToggle } = $props()
+    let { isExpanded, handleSidebarToggle, title } = $props()
 
     console.log($page.url)
+    console.log(title)
 </script>
 
 <nav class="flex w-[100%] items-center justify-between py-4 border-b-2 border-black">
+
+    
     <div class="flex align-middle">
         <!-- svelte-ignore a11y_consider_explicit_label -->
         <button 
             class="ml-6 p-2 transition-transform duration-200" 
             class:rotate-180={!isExpanded}
-            on:click={() => handleSidebarToggle()}
+            onclick={() => handleSidebarToggle()}
         >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
         </button>
 
+        {#if title}
+            <div class="text-[#161b26] text-2xl font-semibold font-['Almarena Neue'] leading-loose self-center">{title}</div>
+        {/if}
+
         <div class="justify-self-start items-center flex">
             <div class="w-[31px] h-[31px] relative origin-top-left -rotate-90 rounded-[100px]  overflow-hidden"></div>
             <div class="text-[#161b26] text-2xl font-semibold font-['Almarena Neue'] leading-loose">{$page.path}</div>
         </div>
     
-
-        <div class="inline-block">
-            <input
-                class="pl-5 pr-1.5 py-1.5 bg-[#fbfbfb] rounded-[134px] border border-[#eaeaea] w-[292px] text-[#72777f] text-sm font-medium font-['Almarena Neue'] leading-tight" 
-                type="search"
-                name="tasks"
-                id="tasks"
-                placeholder="Search tasks"
-            >
-            <div class="p-3 bg-[#ffe9db] rounded-[100px] justify-start items-center gap-2.5 flex overflow-hidden">
-                <div class="w-[15px] h-[15px] relative"></div>
+        {#if $page.url.pathname == "/dashboard"}
+            <div class="inline-block">
+                <input
+                    class="pl-5 pr-1.5 py-1.5 bg-[#fbfbfb] rounded-[134px] border border-[#eaeaea] w-[292px] text-[#72777f] text-sm font-medium font-['Almarena Neue'] leading-tight" 
+                    type="search"
+                    name="tasks"
+                    id="tasks"
+                    placeholder="Search tasks"
+                >
+                <div class="p-3 bg-[#ffe9db] rounded-[100px] justify-start items-center gap-2.5 flex overflow-hidden">
+                    <div class="w-[15px] h-[15px] relative"></div>
+                </div>
             </div>
-        </div>
+        {/if}
 
     </div>
         <!-- svelte-ignore a11y_consider_explicit_label -->

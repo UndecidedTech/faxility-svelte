@@ -1,38 +1,32 @@
-# create-svelte
+# Chat with File Upload - Setup Instructions
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+## Configuration
 
-## Creating a project
+To use a specific assistant ID with this application, follow these steps:
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Add your OpenAI API key and Assistant ID to the `.env` file in the root of the project:
 
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+```
+OPENAI_API_KEY=your_openai_api_key_here
+EXISTING_ASSISTANT_ID=your_assistant_id_here
 ```
 
-## Developing
+2. If you have already uploaded files to a specific assistant, using that assistant's ID will allow users to access those files through the chat interface.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+3. If no `EXISTING_ASSISTANT_ID` is provided, the application will create a new assistant each time the server is restarted.
 
-```bash
-npm run dev
+## Using File Uploads
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+The chat interface supports uploading PDF files that the AI assistant can reference when answering questions.
 
-## Building
+1. Click the chat button in the bottom right corner of the screen
+2. In the chat dialog, use the file upload section to upload a PDF document
+3. After uploading, the assistant will confirm it can access the document
+4. You can then ask questions about the content of the PDF
 
-To create a production version of your app:
+## Technical Details
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Files are securely stored on OpenAI's servers and associated with your assistant
+- Each user gets a unique conversation thread that persists across sessions
+- Uploaded files are available for retrieval by the assistant when answering questions
+- The system logs the assistant ID when creating or using an existing assistant
